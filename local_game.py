@@ -1,11 +1,14 @@
 import os
 from dotenv import load_dotenv
 from game import AdventureGame
+from image_generation import generate_images
+# from image_generation import app
+from flux_backend import *
 
 # Load environment variables for Google API key
 load_dotenv()
-GOOGLE_API_KEY=AIzaSyCxicTpxfvYJA41dkyrSSF0DNEksrG_tQ8
 
+print(f"API Key loaded: {'GOOGLE_API_KEY' in os.environ}")  # Debug line
 
 def main():
     """Run the game locally without Modal"""
@@ -84,6 +87,19 @@ def main():
         
         response = game.process_user_action(user_action)
         print("\n" + response)
+        image_gen_prompt = "Generate an image with a scene of "+str(response)+\
+            " and a character having the attributes of "+str(game.character.attributes)+\
+                "and the description of "+str(game.character.description)+\
+                " and a game world type of "+str(game.world_setting.world_type)      
+        # Generate images based on game state
+        with app.run():
+            image_gen_main(image_gen_prompt)
+            # generate_images.remote(
+            #     game_response=response,
+            #     character_attributes=str(game.character.attributes),
+            #     character_description=game.character.description,
+            #     world_type=game.world_setting.world_type
+            # )
 
 if __name__ == "__main__":
     main()
