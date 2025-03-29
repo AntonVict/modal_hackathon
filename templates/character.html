@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Your Character</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f1123;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .character-card {
+            background-color: rgba(25, 30, 60, 0.7);
+            border-radius: 15px;
+            border: 1px solid #4b5bab;
+            padding: 2rem;
+        }
+        .title-container {
+            text-align: center;
+            padding: 2rem 0;
+        }
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #7986cb;
+            text-shadow: 0 0 10px rgba(121, 134, 203, 0.5);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a5afd7;
+        }
+        .attribute-slider {
+            width: 100%;
+        }
+        .attribute-value {
+            width: 30px;
+            text-align: center;
+            display: inline-block;
+        }
+        .points-counter {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="title-container">
+            <h1 class="main-title">Create Your Character</h1>
+            <p class="subtitle">{{ world|title }} World</p>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="character-card">
+                    <form id="characterForm" action="/initialize_game" method="post">
+                        <div class="mb-4">
+                            <label for="name" class="form-label">Character Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Character Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" 
+                                      placeholder="Describe your character's appearance, backstory, etc." required></textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h4>Attributes</h4>
+                            <p>You have <span id="remainingPoints" class="points-counter">20</span> points to allocate</p>
+                            
+                            <div class="attribute-group mb-3">
+                                <label for="strength" class="form-label">Strength <span id="strengthValue" class="attribute-value">0</span></label>
+                                <input type="range" class="form-range attribute-slider" id="strength" name="strength" min="0" max="10" value="0">
+                            </div>
+                            
+                            <div class="attribute-group mb-3">
+                                <label for="intelligence" class="form-label">Intelligence <span id="intelligenceValue" class="attribute-value">0</span></label>
+                                <input type="range" class="form-range attribute-slider" id="intelligence" name="intelligence" min="0" max="10" value="0">
+                            </div>
+                            
+                            <div class="attribute-group mb-3">
+                                <label for="dexterity" class="form-label">Dexterity <span id="dexterityValue" class="attribute-value">0</span></label>
+                                <input type="range" class="form-range attribute-slider" id="dexterity" name="dexterity" min="0" max="10" value="0">
+                            </div>
+                            
+                            <div class="attribute-group mb-3">
+                                <label for="charisma" class="form-label">Charisma <span id="charismaValue" class="attribute-value">0</span></label>
+                                <input type="range" class="form-range attribute-slider" id="charisma" name="charisma" min="0" max="10" value="0">
+                            </div>
+                            
+                            <div class="attribute-group mb-3">
+                                <label for="luck" class="form-label">Luck <span id="luckValue" class="attribute-value">0</span></label>
+                                <input type="range" class="form-range attribute-slider" id="luck" name="luck" min="0" max="10" value="0">
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">Begin Adventure</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Attribute management
+        const sliders = document.querySelectorAll('.attribute-slider');
+        const remainingPoints = document.getElementById('remainingPoints');
+        const maxPoints = 20;
+        const submitBtn = document.getElementById('submitBtn');
+        
+        function updateRemainingPoints() {
+            let used = 0;
+            sliders.forEach(slider => {
+                used += parseInt(slider.value);
+            });
+            
+            const remaining = maxPoints - used;
+            remainingPoints.textContent = remaining;
+            
+            // Disable sliders that would exceed the point limit
+            sliders.forEach(slider => {
+                const currentValue = parseInt(slider.value);
+                slider.max = Math.min(10, currentValue + remaining);
+            });
+            
+            // Enable/disable submit button
+            submitBtn.disabled = (remaining > 0);
+        }
+        
+        sliders.forEach(slider => {
+            const valueDisplay = document.getElementById(`${slider.id}Value`);
+            
+            // Update value display when slider changes
+            slider.addEventListener('input', function() {
+                valueDisplay.textContent = this.value;
+                updateRemainingPoints();
+            });
+        });
+        
+        // Initial update
+        updateRemainingPoints();
+    </script>
+</body>
+</html>

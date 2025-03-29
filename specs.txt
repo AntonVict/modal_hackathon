@@ -1,0 +1,28 @@
+AI-agent based game utilizing LangChain
+
+The setting of the game should be very open and free in what the player can do. 
+
+
+We should have some predefined settings on how the game should start.
+
+The game settings should be like:
+Fantasy world
+Space world, you are on a spaceship
+Pirate(???) world, you are on a ship
+Regular world
+you are attending the modal hackathon in stockholm, hosted by some venture capital firms and the cloud computing company 
+
+
+We should have a character creation system that allows the player to create a character that will be used in the game. 
+There should be a series of pre-defined fields which the user fills in (height, looks, strength, intelligence, etc.) (maybe we have a limited amount of points to allocated)
+
+
+Now when the game is running, the story-telling AI-agent should give some introduction and then wait for the player to make a move.
+The AI-agent should give the user clear background of whats going on and a series of choices on which the user can make a decision.
+There should be like 3 available choices, and one free-text option.
+
+Now the AI-agent should parse this choice and run the corresponding pre-defined-function. 
+There should be thorough game-state function handling in place. So all the things one could ask for should be handled by the game-state function.
+Think inventory management, current location (maybe have a location system where we have region and city, so that we can be in city:stockholm and go to the docks or train station and such)
+, npcs to talk to, etc.
+    Imagine a map for the world woooo

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Adventure Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f1123;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .game-card {
+            background-color: rgba(25, 30, 60, 0.7);
+            border-radius: 15px;
+            border: 1px solid #4b5bab;
+            transition: transform 0.3s, box-shadow 0.3s;
+            height: 100%;
+        }
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+            border-color: #7986cb;
+        }
+        .title-container {
+            text-align: center;
+            padding: 2rem 0;
+        }
+        .main-title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #7986cb;
+            text-shadow: 0 0 10px rgba(121, 134, 203, 0.5);
+        }
+        .subtitle {
+            font-size: 1.5rem;
+            color: #a5afd7;
+        }
+        .world-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="title-container">
+            <h1 class="main-title">AI Adventure Game</h1>
+            <p class="subtitle">Powered by LangChain & Modal</p>
+        </div>
+        
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <div class="text-center mb-4">
+                    <h2>Choose Your World</h2>
+                    <p>Select the setting for your adventure</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row justify-content-center">
+            {% for key, description in worlds.items() %}
+            <div class="col-md-4 mb-4">
+                <div class="game-card">
+                    <img src="https://source.unsplash.com/400x200/?{{ key }}" alt="{{ key }}" class="world-image">
+                    <div class="card-body p-4">
+                        <h3 class="card-title">{{ key|title }}</h3>
+                        <p class="card-text">{{ description }}</p>
+                        <form action="/character" method="post">
+                            <input type="hidden" name="world" value="{{ key }}">
+                            <button type="submit" class="btn btn-primary w-100">Choose {{ key|title }}</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
