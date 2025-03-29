@@ -10,10 +10,15 @@ import GameScreen from './components/GameScreen';
 
 function App() {
   // Game state
-  const [sessionId] = useState(() => {
+  const [sessionId, setSessionId] = useState(() => {
     // Get existing session ID from localStorage or create a new one
     const savedSessionId = localStorage.getItem('sessionId');
-    return savedSessionId || uuidv4();
+    const newSessionId = savedSessionId || uuidv4();
+    
+    // Always save to localStorage to ensure consistency
+    localStorage.setItem('sessionId', newSessionId);
+    console.log("Using session ID:", newSessionId);
+    return newSessionId;
   });
   
   const [stage, setStage] = useState('welcome'); // 'welcome', 'character', 'game'
@@ -47,9 +52,6 @@ function App() {
     };
 
     fetchWorlds();
-    
-    // Save session ID to localStorage
-    localStorage.setItem('sessionId', sessionId);
   }, [sessionId]);
 
   // Handle world selection

@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sys
@@ -14,11 +15,16 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Store active games by session ID
 active_games = {}
+logger.info(f"Active games on startup: {active_games}")
 
 @app.route('/api/worlds', methods=['GET'])
 def get_worlds():
@@ -38,38 +44,38 @@ def get_worlds():
 def create_character():
     """Create a new character with the given attributes"""
     data = request.json
-    session_id = data.get('sessionId', 'default')
-    
-    if session_id not in active_games:
-        active_games[session_id] = AdventureGame()
-    
-    game = active_games[session_id]
-    
-    # Select world
+    session_id = data.get('sessionId')
     world_key = data.get('worldKey')
-    if not world_key:
-        return jsonify({'error': 'World key is required'}), 400
+    name = data.get('name')
+    attributes = data.get('attributes')
+    description = data.get('description', f"A brave adventurer named {name}")
     
+    logger.info(f"Creating character for session {session_id}, world: {world_key}, name: {name}")
+    
+    if not session_id or not world_key or not name or not attributes:
+        logger.error(f"Missing required parameters: session_id={session_id}, world_key={world_key}, name={name}, attributes={attributes}")
+        return jsonify({'error': 'All fields are required'}), 400
+    
+    # Create game instance for this session
+    game = AdventureGame()
     game.select_world(world_key)
     
-    # Create character
-    name = data.get('name')
-    if not name:
-        return jsonify({'error': 'Character name is required'}), 400
-    
-    attributes = data.get('attributes', {})
-    description = data.get('description', f'A brave adventurer named {name}')
-    
-    game.create_character(name, attributes, description)
-    
-    return jsonify({
-        'success': True,
-        'character': {
-            'name': game.character.name,
-            'attributes': game.character.attributes,
-            'description': game.character.description
-        }
-    })
+    try:
+        game.create_character(name, attributes, description)
+        active_games[session_id] = game
+        logger.info(f"Created character and added to active_games. Active sessions: {list(active_games.keys())}")
+        
+        return jsonify({
+            'success': True,
+            'character': {
+                'name': game.character.name,
+                'attributes': game.character.attributes,
+                'description': game.character.description
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error creating character: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/game/init', methods=['POST'])
 def initialize_game():
@@ -77,19 +83,24 @@ def initialize_game():
     data = request.json
     session_id = data.get('sessionId')
     
+    logger.info(f"Initializing game for session {session_id}")
+    logger.info(f"Current active sessions: {list(active_games.keys())}")
+    
     if not session_id:
+        logger.error("No sessionId provided")
         return jsonify({'error': 'SessionId is required'}), 400
     
     if session_id not in active_games:
+        logger.error(f"Session {session_id} not found in active_games")
         return jsonify({'error': 'No character found. Create a character first.'}), 400
     
     game = active_games[session_id]
     
     try:
         # Initialize the game with an intro prompt
-        print("Calling game.initialize_game()")
+        logger.info("Calling game.initialize_game()")
         response = game.initialize_game()
-        print(f"Response from initialize_game: {response[:100]}...") # Print the first 100 chars
+        logger.info(f"Response from initialize_game: {response[:100]}...") # Print the first 100 chars
         
         # Extract options from response
         options = []

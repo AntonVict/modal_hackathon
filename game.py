@@ -25,7 +25,7 @@ class AdventureGame:
         self.game_state = None
         
         # Initialize LLM using Google Gemini
-        self.llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.7)
+        self.llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.7, api_key="xxxxx")
         
     def select_world(self, world_key):
         """Select a predefined world setting"""
@@ -109,6 +109,8 @@ class AdventureGame:
             3. Hints at possible adventures or challenges ahead
             4. Ends with three specific choices the player can make
             
+
+            Have the text be about 200 words, not more.
             Format your response as:
             DESCRIPTION: [your detailed introduction here]
             
