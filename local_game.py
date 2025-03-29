@@ -4,6 +4,8 @@ from game import AdventureGame
 
 # Load environment variables for Google API key
 load_dotenv()
+GOOGLE_API_KEY=AIzaSyCxicTpxfvYJA41dkyrSSF0DNEksrG_tQ8
+
 
 def main():
     """Run the game locally without Modal"""
@@ -53,8 +55,32 @@ def main():
     # Main game loop
     while True:
         user_action = input("\nWhat will you do? ")
+        
+        # Check for special commands
         if user_action.lower() in ["quit", "exit"]:
             break
+        elif user_action.lower() in ["status", "stats", "state"]:
+            print("\n----- GAME STATUS -----")
+            print(game.game_state.get_state_description())
+            print("-----------------------")
+            continue
+        elif user_action.lower() in ["inventory", "items", "i"]:
+            print("\n----- INVENTORY -----")
+            if game.game_state.inventory:
+                for i, item in enumerate(game.game_state.inventory, 1):
+                    print(f"{i}. {item}")
+            else:
+                print("Your inventory is empty.")
+            print("---------------------")
+            continue
+        elif user_action.lower() in ["help", "commands", "?"]:
+            print("\n----- COMMANDS -----")
+            print("status/stats - View your current game state")
+            print("inventory/items/i - View your inventory")
+            print("help/commands/? - Display this help message")
+            print("quit/exit - Exit the game")
+            print("--------------------")
+            continue
         
         response = game.process_user_action(user_action)
         print("\n" + response)

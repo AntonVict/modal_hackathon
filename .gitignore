@@ -1,4 +1,59 @@
+# Environment variables and secrets
 .env
-__pycache__/
-hackathin_venv/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+hackathin_venv/
+bin/
+venv/
+ENV/
+
+# Node.js / React
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+yarn.lock
+package-lock.json
+/react-adventure-game/build
+/react-adventure-game/coverage
+/react-adventure-game/.pnp
+/react-adventure-game/.pnp.js
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Misc
+.DS_Store
+Thumbs.db

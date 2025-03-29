@@ -135,6 +135,39 @@ class AdventureGame:
     
     def process_user_action(self, user_input):
         """Process the user's chosen action and update the game state"""
+        # Check for special commands
+        if user_input.lower() in ["status", "stats", "state"]:
+            self.game_state.add_to_history(f"PLAYER: {user_input}")
+            status_response = f"DESCRIPTION: Here's your current status:\n\n{self.game_state.get_state_description()}\n\nOPTIONS:\n1. Continue your adventure\n2. Check your inventory\n3. Look around\n4. [Type your own action]"
+            self.game_state.add_to_history(f"STORYTELLER: {status_response}")
+            return status_response
+            
+        if user_input.lower() in ["inventory", "items", "i"]:
+            self.game_state.add_to_history(f"PLAYER: {user_input}")
+            inventory_list = "\n".join([f"- {item}" for item in self.game_state.inventory]) if self.game_state.inventory else "Your inventory is empty."
+            inventory_response = f"DESCRIPTION: You check your belongings:\n\n{inventory_list}\n\nOPTIONS:\n1. Continue your adventure\n2. Use an item\n3. Look around\n4. [Type your own action]"
+            self.game_state.add_to_history(f"STORYTELLER: {inventory_response}")
+            return inventory_response
+            
+        if user_input.lower() in ["help", "commands", "?"]:
+            self.game_state.add_to_history(f"PLAYER: {user_input}")
+            help_response = """DESCRIPTION: Available commands:
+            
+- status/stats - View your current game state
+- inventory/items/i - View your inventory
+- help/commands/? - Display this help message
+- quit/exit - Exit the game
+
+You can also type any action you want to perform.
+
+OPTIONS:
+1. Continue your adventure
+2. Check your status
+3. Check your inventory
+4. [Type your own action]"""
+            self.game_state.add_to_history(f"STORYTELLER: {help_response}")
+            return help_response
+        
         # Parse user input and update game state accordingly
         self.game_state.add_to_history(f"PLAYER: {user_input}")
         
