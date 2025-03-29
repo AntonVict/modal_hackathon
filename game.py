@@ -25,7 +25,8 @@ class AdventureGame:
         self.game_state = None
         
         # Initialize LLM using Google Gemini
-        self.llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.7, api_key="xxxxx")
+        print(f"API Key loaded in game.py: {'GOOGLE_API_KEY' in os.environ}")  # Debug line
+        self.llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.7) # Add location parameter)
         
     def select_world(self, world_key):
         """Select a predefined world setting"""
