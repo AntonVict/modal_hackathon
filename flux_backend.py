@@ -56,11 +56,11 @@ with flux_image.imports():
 
 MINUTES = 60  # seconds
 VARIANT = "schnell"  # or "dev", but note [dev] requires you to accept terms and conditions on HF
-NUM_INFERENCE_STEPS = 4  # use ~50 for [dev], smaller for [schnell]
+NUM_INFERENCE_STEPS = 20  # use ~50 for [dev], smaller for [schnell]
 
 
 @app.cls(
-    gpu="H100:2",  # fastest GPU on Modal
+    gpu="H100:5",  # fastest GPU on Modal
     # scaledown_window=20 * MINUTES,
     timeout=5 * MINUTES,  # leave plenty of time for compilation
     volumes={  # add Volumes to store serializable compilation artifacts, see section on torch.compile below

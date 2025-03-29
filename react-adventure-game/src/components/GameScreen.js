@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect, useRef, useCallback } from 'react';
 import GameContext from './context/GameContext';
+import MusicPlayer from './MusicPlayer';
 import {
   PageWrapper,
   Container,
@@ -351,6 +352,12 @@ const GameScreen = () => {
   return (
     <PageWrapper worldType={selectedWorld?.key}>
       <Container>
+        {/* Music Player - discreetly positioned in the top right */}
+        <MusicPlayer 
+          description={gameState.description} 
+          sessionId={sessionId} 
+        />
+        
         {error && <Notification type="error">{error}</Notification>}
         {localError && <Notification type="error">{localError}</Notification>}
         

@@ -12,6 +12,7 @@ from game import AdventureGame
 from character import Character
 from dotenv import load_dotenv
 from image_api import image_api  # Import the image API blueprint
+from music_api import music_api  # Import the music API blueprint
 
 # Load environment variables
 load_dotenv()
@@ -25,6 +26,9 @@ CORS(app)  # Enable CORS for all routes
 
 # Register the image API blueprint
 app.register_blueprint(image_api, url_prefix='/api/image')
+
+# Register the music API blueprint
+app.register_blueprint(music_api, url_prefix='/api/music')
 
 # Store active games by session ID
 active_games = {}
