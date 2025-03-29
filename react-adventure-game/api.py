@@ -11,6 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from game import AdventureGame
 from character import Character
 from dotenv import load_dotenv
+from image_api import image_api  # Import the image API blueprint
 
 # Load environment variables
 load_dotenv()
@@ -21,6 +22,9 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
+
+# Register the image API blueprint
+app.register_blueprint(image_api, url_prefix='/api/image')
 
 # Store active games by session ID
 active_games = {}

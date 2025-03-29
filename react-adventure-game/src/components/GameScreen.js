@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
+import React, { useState, useContext, useEffect, useRef, useCallback } from 'react';
 import GameContext from './context/GameContext';
 import {
   PageWrapper,
@@ -23,15 +23,15 @@ import {
 
 const GameScreen = () => {
   const {
+    sessionId,
     selectedWorld,
     character,
     gameState,
     isLoading,
     error,
     processAction,
-    sessionId,
-    getStatus: apiGetStatus,
     getInventory: apiGetInventory,
+    getStatus: apiGetStatus,
     startNewGame
   } = useContext(GameContext);
   
@@ -47,6 +47,9 @@ const GameScreen = () => {
   const [gold, setGold] = useState(0);
   const [statusMessage, setStatusMessage] = useState(null);
   const [localError, setLocalError] = useState(null);
+  const [gameImage, setGameImage] = useState(null);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [imageError, setImageError] = useState(null);
   
   // References
   const storyTextRef = useRef(null);
@@ -293,6 +296,50 @@ const GameScreen = () => {
     return formatted;
   };
 
+  // Generate an image based on current game state
+  const generateImage = useCallback(async () => {
+    if (!gameState.description || !character || !selectedWorld) return;
+    
+    try {
+      setIsGeneratingImage(true);
+      setImageError(null);
+      
+      const response = await fetch('/api/image/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          description: gameState.description,
+          characterDescription: character.description,
+          worldType: selectedWorld.key
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate image');
+      }
+      
+      // Set the image URL
+      setGameImage(data.imagePath);
+    } catch (err) {
+      console.error('Error generating image:', err);
+      setImageError('Failed to generate scene image. The game will continue without visuals.');
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  }, [gameState.description, character, selectedWorld, sessionId]);
+
+  // Generate image when game state changes
+  useEffect(() => {
+    if (gameState.description && !isLoading) {
+      generateImage();
+    }
+  }, [gameState.description, isLoading, generateImage]);
+
   useEffect(() => {
     // Process any state changes when gameState updates
     if (gameState.stateChanges) {
@@ -376,19 +423,26 @@ const GameScreen = () => {
         
         <Card>
           <ImageContainer>
-            {/* This will later be replaced with generated images */}
-            <div style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              fontSize: '1.2rem',
-              backgroundColor: selectedWorld ? `var(--${selectedWorld.key}-color, #2c3e50)` : '#2c3e50'
-            }}>
-              Scene Imagery
-            </div>
+            {isGeneratingImage ? (
+              <Flex direction="column" align="center" justify="center" style={{ height: '100%' }}>
+                <LoadingSpinner size="40px" />
+                <Paragraph center style={{ marginTop: '1rem' }}>Generating scene image...</Paragraph>
+              </Flex>
+            ) : imageError ? (
+              <Flex direction="column" align="center" justify="center" style={{ height: '100%', padding: '1rem' }}>
+                <Paragraph center>{imageError}</Paragraph>
+              </Flex>
+            ) : gameImage ? (
+              <img 
+                src={gameImage} 
+                alt="Game scene" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} 
+              />
+            ) : (
+              <Flex direction="column" align="center" justify="center" style={{ height: '100%' }}>
+                <Paragraph center>No image available</Paragraph>
+              </Flex>
+            )}
           </ImageContainer>
           
           <StoryText ref={storyTextRef}>

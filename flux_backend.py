@@ -60,7 +60,7 @@ NUM_INFERENCE_STEPS = 4  # use ~50 for [dev], smaller for [schnell]
 
 
 @app.cls(
-    gpu="H100",  # fastest GPU on Modal
+    gpu="H100:2",  # fastest GPU on Modal
     # scaledown_window=20 * MINUTES,
     timeout=5 * MINUTES,  # leave plenty of time for compilation
     volumes={  # add Volumes to store serializable compilation artifacts, see section on torch.compile below
@@ -153,6 +153,7 @@ def image_gen_main(
     " at the screen.",
     twice: bool = True,
     compile: bool = False,
+    output_path: str = None
 ):
     t0 = time.time()
     image_bytes = Model().inference.remote(prompt)
@@ -163,9 +164,11 @@ def image_gen_main(
         image_bytes = Model().inference.remote(prompt)
         print(f"🎨 second inference latency: {time.time() - t0:.2f} seconds")
 
-    output_path = os.path.join(os.getcwd(), "gen_img.jpg")
-    # output_path.parent.mkdir(exist_ok=True, parents=True)
+    # Use provided output path or default
+    if not output_path:
+        output_path = os.path.join(os.getcwd(), "gen_img.jpg")
+    
     print(f"🎨 saving output to {output_path}")
     with open(output_path, "wb") as f:
         f.write(image_bytes)
-    # output_path.write_bytes(image_bytes)
+    return output_path
