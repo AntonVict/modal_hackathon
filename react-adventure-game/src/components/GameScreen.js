@@ -325,6 +325,7 @@ const GameScreen = () => {
       
       // Set the image URL
       setGameImage(data.imagePath);
+      console.log("Updated game image URL:", data.imagePath);
     } catch (err) {
       console.error('Error generating image:', err);
       setImageError('Failed to generate scene image. The game will continue without visuals.');
