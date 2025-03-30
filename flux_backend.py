@@ -44,23 +44,25 @@ flux_image = flux_image.env(
     {
         "TORCHINDUCTOR_CACHE_DIR": "/root/.inductor-cache",
         "TORCHINDUCTOR_FX_GRAPH_CACHE": "1",
+        # "HUGGING_FACE_HUB_TOKEN": xxxxx
+
     }
+
 )
 
-app = modal.App("example-flux", image=flux_image)
+app = modal.App("adventure-image-gen", image=flux_image)
 
 with flux_image.imports():
     import torch
     from diffusers import FluxPipeline
 
 
-MINUTES = 60  # seconds
-VARIANT = "schnell"  # or "dev", but note [dev] requires you to accept terms and conditions on HF
+MINUTES = 300  # seconds
+VARIANT = "dev"  # or "dev", but note [dev] requires you to accept terms and conditions on HF
 NUM_INFERENCE_STEPS = 20  # use ~50 for [dev], smaller for [schnell]
 
-
 @app.cls(
-    gpu="H100:5",  # fastest GPU on Modal
+    gpu="H100:8",  # fastest GPU on Modal
     # scaledown_window=20 * MINUTES,
     timeout=5 * MINUTES,  # leave plenty of time for compilation
     volumes={  # add Volumes to store serializable compilation artifacts, see section on torch.compile below

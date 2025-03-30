@@ -25,6 +25,9 @@ TRACKS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public', 
 # Create tracks directory if it doesn't exist
 os.makedirs(TRACKS_DIR, exist_ok=True)
 
+# Dictionary to store track selections by session ID
+track_selections = {}
+
 # Get list of available tracks
 def get_available_tracks():
     """Get list of all track files in the tracks directory"""
@@ -66,7 +69,7 @@ music_prompt = PromptTemplate(
 music_selector_chain = LLMChain(llm=llm, prompt=music_prompt)
 
 # Music selection function
-def select_music_for_scene(scene_description):
+def select_music_for_scene(scene_description, session_id=None, force_new_selection=False):
     """Select the most appropriate music track for a scene"""
     try:
         # Get available tracks
@@ -75,6 +78,12 @@ def select_music_for_scene(scene_description):
         if not tracks:
             logger.warning("No music tracks found in tracks directory")
             return None
+        
+        # Check if we already have a selection for this session
+        if not force_new_selection and session_id and session_id in track_selections:
+            logger.info(f"Using existing track selection for session {session_id}")
+            # Return the previously selected track to maintain continuity
+            return track_selections[session_id]
             
         # Create a list of track names for the prompt
         track_names = [track['name'] for track in tracks]
@@ -103,6 +112,10 @@ def select_music_for_scene(scene_description):
                 selected_track = tracks[0]
                 logger.warning(f"No matching track found for '{track_name}', defaulting to {selected_track['name']}")
         
+        # Store the selection for this session
+        if session_id:
+            track_selections[session_id] = selected_track
+        
         return selected_track
     except Exception as e:
         logger.error(f"Error selecting music: {str(e)}")
@@ -110,25 +123,68 @@ def select_music_for_scene(scene_description):
             return tracks[0]  # Return first track as fallback
         return None
 
+# Function to compare scene descriptions for similarity
+def scenes_are_similar(prev_description, current_description):
+    """Determine if scenes are similar enough to maintain the same music"""
+    # Simple implementation: check for key phrase overlap
+    if not prev_description or not current_description:
+        return False
+    
+    # Extract key terms from descriptions
+    prev_terms = set(prev_description.lower().split())
+    current_terms = set(current_description.lower().split())
+    
+    # Calculate overlap
+    common_terms = prev_terms.intersection(current_terms)
+    
+    # If more than 40% of terms overlap, consider scenes similar
+    similarity = len(common_terms) / max(len(prev_terms), len(current_terms))
+    
+    return similarity > 0.4
+
 @music_api.route('/select', methods=['POST'])
 def select_music():
     """API endpoint to select appropriate music for a scene"""
     data = request.json
     scene_description = data.get('description', '')
+    session_id = data.get('sessionId')
     
     if not scene_description:
         return jsonify({'error': 'Scene description is required'}), 400
-        
-    selected_track = select_music_for_scene(scene_description)
+    
+    # Track the last description for this session
+    prev_description = None
+    if session_id and session_id in track_selections:
+        prev_description = track_selections.get(f"{session_id}_description")
+    
+    # Store current description
+    if session_id:
+        track_selections[f"{session_id}_description"] = scene_description
+    
+    # Determine if we need a new track or can keep the current one
+    force_new_selection = False
+    if prev_description and not scenes_are_similar(prev_description, scene_description):
+        # Scenes are different enough to warrant new music
+        force_new_selection = True
+        logger.info("Scene changed significantly, selecting new music track")
+    
+    # Get the selected track (either new or existing)
+    selected_track = select_music_for_scene(
+        scene_description, 
+        session_id=session_id,
+        force_new_selection=force_new_selection
+    )
     
     if not selected_track:
         return jsonify({'error': 'No suitable track found'}), 404
-        
-    logger.info(f"Selected track for scene: {selected_track['name']}")
     
+    logger.info(f"Returning track for scene: {selected_track['name']}")
+    
+    # Include a field indicating if this is a new selection or continued from before
     return jsonify({
         'success': True,
-        'track': selected_track
+        'track': selected_track,
+        'is_new_selection': force_new_selection or prev_description is None
     })
 
 @music_api.route('/tracks', methods=['GET'])

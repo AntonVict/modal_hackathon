@@ -10,6 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import image generation modules
 from flux_backend import app as modal_app, image_gen_main, Model
+from image_prompt_agent import ImagePromptAgent
 
 # Create the blueprint
 image_api = Blueprint('image_api', __name__)
@@ -20,6 +21,9 @@ image_cache = {}
 # Modal session management
 modal_session = None
 modal_lock = threading.Lock()
+
+# Initialize image prompt agent
+prompt_agent = ImagePromptAgent()
 
 def ensure_modal_running():
     """Ensure that the Modal session is running, starting it if needed"""
@@ -61,13 +65,15 @@ def generate_image():
     character_description = data.get('characterDescription', '')
     world_type = data.get('worldType', 'fantasy')
     
-    # Create a full prompt that includes all relevant information
-    image_prompt = f"Generate an image with a scene as follows: {description}"
+    # Create an optimized prompt using the ImagePromptAgent
+    print(f"Creating optimized image prompt for world: {world_type}")
+    image_prompt = prompt_agent.create_prompt(
+        description=description,
+        character_description=character_description,
+        world_type=world_type
+    )
     
-    if character_description:
-        image_prompt += f" and a human cartoon character with description: {character_description}"
-    
-    image_prompt += f", in a {world_type} game world"
+    print(f"Generated image prompt: {image_prompt[:100]}...")
     
     # Generate image 
     try:
@@ -99,33 +105,20 @@ def generate_image():
         # Add timestamp for cache busting
         timestamp = int(time.time())
         
+        # Return success response with image path
         return jsonify({
             'success': True,
             'imagePath': f'/api/image/view/{session_id}?t={timestamp}'
         })
+        
     except Exception as e:
         print(f"Error generating image: {str(e)}")
-        # If the session died, we'll try to restart it next time
-        if "Modal session" in str(e):
-            with modal_lock:
-                if modal_session is not None:
-                    try:
-                        modal_session.__exit__(None, None, None)
-                    except:
-                        pass
-                    modal_session = None
-                    
         return jsonify({'error': str(e)}), 500
 
 @image_api.route('/view/<session_id>', methods=['GET'])
 def view_image(session_id):
     """Serve the generated image"""
     if session_id not in image_cache:
-        return jsonify({'error': 'No image found for this session'}), 404
+        return jsonify({'error': 'Image not found'}), 404
     
-    image_path = image_cache[session_id]
-    
-    if not os.path.exists(image_path):
-        return jsonify({'error': 'Image file not found'}), 404
-    
-    return send_file(image_path, mimetype='image/jpeg')
+    return send_file(image_cache[session_id], mimetype='image/jpeg')

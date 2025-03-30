@@ -102,6 +102,15 @@ const CharacterCreation = () => {
     charisma: 'Social influence, leadership, and persuasion',
     luck: 'Random chance, finding items, and critical hits'
   };
+
+  // Attribute icons (using emoji as placeholders - could be replaced with proper icons)
+  const attributeIcons = {
+    strength: '💪',
+    intelligence: '🧠',
+    dexterity: '🏃',
+    charisma: '🗣️',
+    luck: '🍀'
+  };
   
   return (
     <PageWrapper worldType={selectedWorld?.key}>
@@ -129,14 +138,25 @@ const CharacterCreation = () => {
             </FormGroup>
             
             <FormGroup>
-              <Label>Attributes</Label>
-              <RemainingPoints warning={remainingPoints < 5}>
-                Remaining Points: <span>{remainingPoints}</span>
-              </RemainingPoints>
+              <Flex justify="space-between" align="center">
+                <Label>Attributes</Label>
+                <RemainingPoints warning={remainingPoints < 5} pulse={remainingPoints < 3}>
+                  Remaining Points: <span>{remainingPoints}</span>
+                </RemainingPoints>
+              </Flex>
               
               {Object.entries(attributes).map(([attr, value]) => (
                 <AttributeRow key={attr}>
-                  <AttributeLabel>{attr.charAt(0).toUpperCase() + attr.slice(1)}</AttributeLabel>
+                  <Flex align="center" gap="md">
+                    <AttributeLabel>
+                      <span className="icon">{attributeIcons[attr]}</span>
+                      <span>{attr.charAt(0).toUpperCase() + attr.slice(1)}</span>
+                    </AttributeLabel>
+                    <Paragraph className="attr-description" style={{ margin: 0, fontSize: '0.8rem', opacity: 0.7 }}>
+                      {attributeDescriptions[attr]}
+                    </Paragraph>
+                  </Flex>
+                  
                   <AttributeControls>
                     <IconButton
                       type="button"
@@ -153,34 +173,20 @@ const CharacterCreation = () => {
                     >
                       +
                     </IconButton>
-                    <Slider
-                      value={value}
-                      min={1}
-                      max={10}
-                      onChange={(e) => handleAttributeChange(attr, e.target.value)}
-                      style={{ flexGrow: 1, margin: '0 1rem' }}
-                    />
+                    <Flex direction="column" style={{ flexGrow: 1, margin: '0 1rem' }}>
+                      <Slider
+                        value={value}
+                        min={1}
+                        max={10}
+                        onChange={(e) => handleAttributeChange(attr, e.target.value)}
+                      />
+                      <ProgressBar style={{ marginTop: '0.25rem' }}>
+                        <ProgressFill value={value * 10} color={attr} />
+                      </ProgressBar>
+                    </Flex>
                   </AttributeControls>
                 </AttributeRow>
               ))}
-              
-              {/* Attribute Bars Visualization */}
-              <Flex direction="column" style={{ marginTop: '1rem' }}>
-                {Object.entries(attributes).map(([attr, value]) => (
-                  <div key={`bar-${attr}`} style={{ marginBottom: '0.5rem' }}>
-                    <Flex justify="space-between">
-                      <span>{attr.charAt(0).toUpperCase() + attr.slice(1)}</span>
-                      <span>{value}/10</span>
-                    </Flex>
-                    <ProgressBar>
-                      <ProgressFill value={value * 10} color={attr} />
-                    </ProgressBar>
-                    <Paragraph style={{ fontSize: '0.8rem', opacity: 0.7 }}>
-                      {attributeDescriptions[attr]}
-                    </Paragraph>
-                  </div>
-                ))}
-              </Flex>
             </FormGroup>
             
             <FormGroup>
@@ -202,13 +208,8 @@ const CharacterCreation = () => {
               >
                 Back
               </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Creating...' : 'Create Character & Start Adventure'}
-                {isLoading && <LoadingSpinner size="20px" style={{ marginLeft: '0.5rem' }} />}
+              <Button type="submit" variant="primary" disabled={isLoading}>
+                {isLoading ? <LoadingSpinner size="small" /> : 'Create Character'}
               </Button>
             </Flex>
           </form>
